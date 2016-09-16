@@ -109,13 +109,13 @@ lazy val checkUnstagedAndUntracked = { st: State =>
 }
 
 releaseProcess := Seq[ReleaseStep](
-  checkUnstagedAndUntracked,
+//   checkUnstagedAndUntracked,
   ReleaseStep(action = Command.process("git pull", _)),
   confirmVersion,
   runClean,
   runTest,
   tagRelease,
-  ReleaseStep(action = Command.process("git push --follow-tags", _)),
-  ReleaseStep(action = Command.process("publishSigned", _)),
-  ReleaseStep(action = Command.process("sonatypeReleaseAll", _))
+  ReleaseStep(action = Command.process("git push --follow-tags", _))
+//   ReleaseStep(action = Command.process("publishSigned", _)),
+//   ReleaseStep(action = Command.process("sonatypeReleaseAll", _))
 )
