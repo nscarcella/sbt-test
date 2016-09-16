@@ -48,21 +48,15 @@ lazy val checkUnstagedAndUntracked = { st: State =>
     st
   }
 
-lazy val push = {st: State =>
-  val extracted = Project.extract( st )
-  val (state2, runner) = extracted.runTask(git.runner, st)
-  st.log.info("Pushing changes")
-  runner("push", "--follow-tags")(extracted.get(baseDirectory), state2.log)
-  state2
-}
+def runGit(args: String) = releaseStepCommand(com.typesafe.sbt.SbtGit.GitCommand.command, s" $args")
   
 releaseProcess := Seq[ReleaseStep](
-//   checkUnstagedAndUntracked,
-  //pull,
+  checkUnstagedAndUntracked,
+  runGit("pull"),
   confirmVersion,
   runClean,
   runTest,
   tagRelease,
 //   publishArtifacts,
-  push
+  runGit("push --follow-tags")
 )
