@@ -115,6 +115,7 @@ releaseProcess := Seq[ReleaseStep](
   runClean,
   runTest,
   tagRelease,
+  
   ReleaseStep(action = Command.process("git push --follow-tags", _))
 //   ReleaseStep(action = Command.process("publishSigned", _)),
 //   ReleaseStep(action = Command.process("sonatypeReleaseAll", _))
