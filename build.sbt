@@ -77,7 +77,13 @@ releaseNextVersion := { currentVersion =>
 }
 
 releaseTagComment := {
-  s"Hi! I'm the release ${releaseTagName.value}"
+  val lastTag = Process("git describe --tags --abbrev=0").lines.optionHead
+  val changeWindow = lastTag.fold("HEAD"){_ + "..HEAD"}
+  
+  s"""Hi! I'm the release ${releaseTagName.value}
+  
+  ${Process(s"git log $changeWindow").lines.mkString("\n")}
+  """
 }
 
 lazy val confirmVersion: ReleaseStep = { st: State =>
