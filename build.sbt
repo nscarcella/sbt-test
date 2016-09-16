@@ -1,9 +1,12 @@
 // sbt-git
 
+import git._
+
 enablePlugins(GitVersioning)
 enablePlugins(GitBranchPrompt)
 
-git.useGitDescribe := true
+useGitDescribe := true
+uncommittedSignifier := None
 
 // sbt-release
 
@@ -12,54 +15,46 @@ import ReleaseKeys._
 import Utilities._
 import ReleaseStateTransformations._
 
-releaseVersionBump := Version.Bump.Bugfix
-
-// releaseNextVersion := { currentVersion =>
-//   Version(currentVersion).map(_.bumpNano.withoutQualifier.string).getOrElse(versionFormatError)
-// }
-
+releaseNextVersion := { currentVersion =>
+  Version(currentVersion).map(_.bumpBugfix.withoutQualifier.string).getOrElse(versionFormatError)
+}
 
 lazy val confirmVersion: ReleaseStep = { st: State =>
   val extracted = Project.extract(st)
   val currentVersion = extracted.get(version)
-  val suggestedReleaseVersion = extracted.get(releaseNextVersion)(currentVersion)
+  val versionPattern = """([^-]*)-?.*""".r
+  val versionPattern(baseVersion) = currentVersion
+  val suggestedReleaseVersion = extracted.get(releaseNextVersion)(baseVersion)
+  
+  println(s"Current version: $currentVersion")
+  val releaseVersion = readVersion(
+    suggestedReleaseVersion,
+    "Release version [%s] : ",
+    st.get(useDefaults).getOrElse(false),
+    st.get(commandLineReleaseVersion).flatten
+  )
 
-  println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-  println(currentVersion)
-  println(extracted.get(git.gitDescribedVersion))
-  println(
-    git.describeVersion(extracted.get(git.gitDescribedVersion), "")
-  )
-  println(
-    git.makeUncommittedSignifierSuffix(
-      extracted.get(git.gitUncommittedChanges),
-      extracted.get(git.uncommittedSignifier)
-    )
-  )
-  
-  val releaseVersion = readVersion(suggestedReleaseVersion, "Release version [%s] : ", st.get(useDefaults).getOrElse(false), st.get(commandLineReleaseVersion).flatten)
-  
-  st.log.info("Setting version to '%s'." format releaseVersion)
-  
-  val useGlobal = st.extract.get(releaseUseGlobalVersion)
-  reapply(Seq(
-    if (useGlobal) version in ThisBuild := releaseVersion
-    else version := releaseVersion
-  ), st)
+  reapply(Seq(releaseTagName := s"v$releaseVersion"), st)
 }
 
+lazy val checkUnstagedAndUntracked = { st: State =>
+    val extracted = Project.extract( st )
+    val vcs = st.extract.get(releaseVcs).getOrElse(sys.error("Aborting release: Working directory is not a repository of a recognized VCS."))
+    val hasUntrackedFiles = vcs.hasUntrackedFiles
+    val hasModifiedFiles = vcs.hasModifiedFiles
+    if ( hasModifiedFiles ) sys.error( "Aborting release: Unstaged modified files" )
+    if ( hasUntrackedFiles && !extracted.get( releaseIgnoreUntrackedFiles ) ) sys.error( "Aborting release: Untracked files. Remove them or specify 'releaseIgnoreUntrackedFiles := true' in settings" )
+
+    st
+  }
+
+
 releaseProcess := Seq[ReleaseStep](
-//   checkSnapshotDependencies,
-//   initialVcsChecks,
-//   inquireVersions,
+  checkUnstagedAndUntracked,
   confirmVersion,
   runClean,
   runTest,
-//   setReleaseVersion,
-//   commitReleaseVersion,
   tagRelease,
 //   publishArtifacts,
-//   setNextVersion,
-//   commitNextVersion,
   pushChanges
 )
