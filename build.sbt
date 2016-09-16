@@ -34,15 +34,6 @@ isSnapshot := snapshotPattern matches version.value
 //////////////////////////////////////////////////////////////////////
 // sbt-sonatype
 
-// publishTo <<= version { v: String =>
-//   val nexus = "https://oss.sonatype.org/"
-//   if (v.trim.endsWith("SNAPSHOT"))
-//     Some("snapshots" at nexus + "content/repositories/snapshots")
-//   else
-//     Some("releases" at nexus + "service/local/staging/deploy/maven2")
-// }
-
-
 credentials += Credentials("Sonatype Nexus Repository Manager",
                            "oss.sonatype.org",
                            "nscarcella",
@@ -79,9 +70,9 @@ releaseNextVersion := { currentVersion =>
 releaseTagComment := {
   val lastTag = Process("git describe --tags --abbrev=0").lines.headOption
   val changeWindow = lastTag.fold("HEAD"){_ + "..HEAD"}
-  val logs = Process(s"git log $changeWindow").lines.map(_.trim).filter(_.startsWith('*'))
+  val logs = Process(s"git log $changeWindow").lines.map(_.trim).filter(_.startsWith("*"))
   
-  s"""${releaseTagName.value}\n\n${logs.mkString("\n")}"""
+  s"""${releaseTagName.value}\nAlgo Algo\n---------\n${logs.mkString("\n")}"""
 }
 
 lazy val confirmVersion: ReleaseStep = { st: State =>
