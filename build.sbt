@@ -76,6 +76,10 @@ releaseNextVersion := { currentVersion =>
   Version(currentVersion).map(_.bumpBugfix.withoutQualifier.string).getOrElse(versionFormatError)
 }
 
+releaseTagComment := {
+  s"Hi! I'm the release ${releaseTagName.value}"
+}
+
 lazy val confirmVersion: ReleaseStep = { st: State =>
   val extracted = Project.extract(st)
   val currentVersion = extracted.get(version)
@@ -103,8 +107,6 @@ lazy val checkUnstagedAndUntracked = { st: State =>
   if ( hasUntrackedFiles && !extracted.get( releaseIgnoreUntrackedFiles ) ) sys.error( "Aborting release: Untracked files. Remove them or specify 'releaseIgnoreUntrackedFiles := true' in settings" )
   st
 }
-
-// def runGit(args: String) = releaseStepCommand(GitCommand.command, s" $args")
 
 releaseProcess := Seq[ReleaseStep](
   checkUnstagedAndUntracked,
