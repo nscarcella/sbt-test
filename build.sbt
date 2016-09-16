@@ -104,16 +104,16 @@ lazy val checkUnstagedAndUntracked = { st: State =>
   st
 }
 
-def runGit(args: String) = releaseStepCommand(GitCommand.command, s" $args")
+// def runGit(args: String) = releaseStepCommand(GitCommand.command, s" $args")
 
 releaseProcess := Seq[ReleaseStep](
   checkUnstagedAndUntracked,
-  runGit("pull"),
+  ReleaseStep(action = Command.process("git pull", _)),
   confirmVersion,
   runClean,
   runTest,
   tagRelease,
-  runGit("push --follow-tags"),
+  ReleaseStep(action = Command.process("git push --follow-tags", _)),
   ReleaseStep(action = Command.process("publishSigned", _)),
   ReleaseStep(action = Command.process("sonatypeReleaseAll", _))
 )
