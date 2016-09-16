@@ -70,7 +70,7 @@ releaseNextVersion := { currentVersion =>
 releaseTagComment := {
   val lastTag = Process("git describe --tags --abbrev=0").lines.headOption
   val changeWindow = lastTag.fold("HEAD"){_ + "..HEAD"}
-  val logs = Process(s"git log $changeWindow").lines.map(_.trim).filter(_.startsWith("*"))
+  val logs = Process(s"git log $changeWindow --pretty='%B'").lines.map(_.trim).filter(_.startsWith("*"))
   
   s"""${releaseTagName.value}\nAlgo Algo\n---------\n${logs.mkString("\n")}"""
 }
