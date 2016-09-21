@@ -1,1 +1,1 @@
-addSbtPlugin("org.uqbar" % "sbt-uqbar-project" % "1-SNAPSHOT")
+addSbtPlugin("org.uqbar" % "sbt-uqbar-project" % "4-SNAPSHOT")
